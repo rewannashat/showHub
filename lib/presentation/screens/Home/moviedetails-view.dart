@@ -1,8 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'home-viewModel/MoviePlayerScreen.dart';
+import 'MoviePlayerScreen.dart';
 import 'home-viewModel/home-cubit.dart';
 import 'home-viewModel/home-states.dart';
 
@@ -101,18 +102,15 @@ class MovieDetailsScreen extends StatelessWidget {
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
                         children: [
-                          /// Year
                           Text(
                             "Cinema ${movieDetails["info"]["year"] ?? "Unknown"}",
                             style: TextStyle(color: Colors.purple, fontSize: 14),
                           ),
 
-                          /// Separator |
                           SizedBox(width: 6),
                           Text("|", style: TextStyle(color: Colors.white70, fontSize: 14)),
                           SizedBox(width: 6),
 
-                          /// Age Restriction +18
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
@@ -125,12 +123,12 @@ class MovieDetailsScreen extends StatelessWidget {
                             ),
                           ),
 
-                          /// Separator |
+
                           SizedBox(width: 6),
                           Text("|", style: TextStyle(color: Colors.white70, fontSize: 14)),
                           SizedBox(width: 6),
 
-                          /// Genre
+
                           Text(
                             movieDetails["info"]["genre"] ?? "Action",
                             style: TextStyle(color: Colors.purple, fontSize: 14),
@@ -162,30 +160,36 @@ class MovieDetailsScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              final String streamId = movieDetails["info"]["tmdb_id"].toString();
-                              final String extension = "mp4";
+                          BlocBuilder<HomeCubit,HomeStates>(
+                            builder: (context, state) {
+                              HomeCubit cubit = HomeCubit.get(context);
+                              return ElevatedButton.icon(
+                              onPressed: () {
+                                final String streamId = movieDetails["info"]["tmdb_id"].toString();
+                                final String extension = "mp4";
 
-                              String movieUrl = "http://tgdns4k.com:8080/movie/1234322441154/73057628438336/$streamId.$extension";
-                            //  print('url is $movieUrl');
+                                String movieUrl = "http://tgdns4k.com:8080/movie/16377097252198/22718995529521/$streamId.$extension";
+                                //print('urel $movieUrl');
+                                cubit.checkMovieUrl(movieUrl);
 
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MoviePlayerScreen(movieUrl: movieUrl),
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MoviePlayerScreen(movieUrl: movieUrl),
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.play_arrow, color: Colors.white),
+                              label: Text("Watch", style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.purple,
+                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                              );
-                            },
-                            icon: Icon(Icons.play_arrow, color: Colors.white),
-                            label: Text("Watch", style: TextStyle(color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.purple,
-                              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
                               ),
-                            ),
+                            );
+                            },
                           ),
                           ElevatedButton.icon(
                             onPressed: () {},

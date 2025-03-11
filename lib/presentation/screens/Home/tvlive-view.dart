@@ -7,8 +7,7 @@ import 'package:showhub/presentation/resources/font-manager.dart';
 import 'package:showhub/presentation/resources/values-manager.dart';
 import 'package:showhub/presentation/screens/Home/home-viewModel/home-cubit.dart';
 import 'package:showhub/presentation/screens/Home/home-viewModel/home-states.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'home-viewModel/MovieCategory-list.dart';
+
 import 'home-viewModel/chanel-list.dart';
 import 'live_player_screen.dart';
 
@@ -46,7 +45,7 @@ class TvLiveView extends StatelessWidget {
             Container(
               margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.04),
               width: 280.w,
-              height: 40.h,
+              height: 50.h, // Increase height slightly
               padding: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
@@ -55,17 +54,14 @@ class TvLiveView extends StatelessWidget {
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   isExpanded: true,
-                  value: cubit.selectedLiveCategory,
-                  hint: cubit.selectedLiveCategory == null
-                      ? Text("Select Category") // Show "Select Category" initially
-                      : Text(cubit.liveCategories.firstWhere(
-                          (category) => category.categoryId == cubit.selectedCategory,
-                      orElse: () => MovieCategory(categoryId: '', categoryName: 'Select Category')).categoryName,
-                  ),
+                  value: cubit.selectedCategoryLive ?? cubit.selectedCategoryLive ,
+                  hint: Text("Select Category", style: TextStyle(color: Colors.grey)),
                   onChanged: (newValue) {
-                    cubit.changeDropdownValue(newValue!);
+                    if (newValue != null) {
+                      cubit.changeDropdownValue(newValue);
+                    }
                   },
-                  items: cubit.liveCategories.map((category) {
+                  items: cubit.categoriesLive.map((category) {
                     return DropdownMenuItem<String>(
                       value: category.categoryId,
                       child: Text(category.categoryName),
@@ -89,17 +85,17 @@ class TvLiveView extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 child: BlocProvider(
-                  create: (context) => HomeCubit()..getChannels(),
+                  create: (context) => HomeCubit()..getLives(),
                   child: BlocBuilder<HomeCubit, HomeStates>(
                     builder: (context, state) {
                       if (state is LoadingState) {
                         return Center(child: CircularProgressIndicator());
                       } else if (state is LoadedState) {
                         return GridView.builder(
-                          shrinkWrap: true, // FIXES THE ERROR
+                          shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
                           padding: EdgeInsets.all(8),
-                          itemCount: 100, //state.channels.length
+                          itemCount: 200, // Use the filtered channels
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
                             crossAxisSpacing: 10,
@@ -121,6 +117,7 @@ class TvLiveView extends StatelessWidget {
               ),
             ),
 
+
           ],
         ),
 
@@ -141,7 +138,7 @@ class ChannelCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: (){
-        final streamUrl = "http://tgdns4k.com:8080/live/1234322441154/73057628438336/${channel.streamId}.ts";
+        final streamUrl = "http://tgdns4k.com:8080/live/16377097252198/22718995529521/${channel.streamId}.ts";
           print('the link of livestream $streamUrl');
         Navigator.push(
           context,

@@ -7,7 +7,6 @@ import '../../resources/colors-manager.dart';
 import '../../resources/font-manager.dart';
 import '../../resources/values-manager.dart';
 import 'home-viewModel/Movie-list.dart';
-import 'home-viewModel/MovieCategory-list.dart';
 import 'home-viewModel/home-cubit.dart';
 import 'home-viewModel/home-states.dart';
 import 'moviedetails-view.dart';
@@ -55,21 +54,12 @@ class MovieView extends StatelessWidget {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                value: cubit.selectedCategory != null &&
-                    cubit.categories.any((category) => category.categoryId == cubit.selectedCategory)
-                    ? cubit.selectedCategory
-                    : null, // Ensure selected value exists
-                hint: Text(
-                  cubit.selectedCategory != null &&
-                      cubit.categories.any((category) => category.categoryId == cubit.selectedCategory)
-                      ? cubit.categories
-                      .firstWhere((category) => category.categoryId == cubit.selectedCategory)
-                      .categoryName
-                      : "Select Category",
-                  style: TextStyle(color: Colors.grey),
-                ),
+                value: cubit.selectedCategory,
+                hint: Text("Select Category", style: TextStyle(color: Colors.grey)),
                 onChanged: (newValue) {
-                  cubit.changeDropdownValue(newValue!);
+                  if (newValue != null) {
+                    cubit.changeDropdownVal(newValue);
+                  }
                 },
                 items: cubit.categories.map((category) {
                   return DropdownMenuItem<String>(
@@ -93,39 +83,37 @@ class MovieView extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                child: BlocProvider(
-                  create: (context) => HomeCubit()..getMovies(),
-                  child: BlocBuilder<HomeCubit, HomeStates>(
-                    builder: (context, state) {
-                      if (state is LoadingState) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (state is MovieState) {
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.all(8),
-                          itemCount: 100,//state.movies.length
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.8,
-                          ),
-                          itemBuilder: (context, index) {
-                            return MovieCard(movie: state.movies[index]);
-                          },
-                        );
-                      } else if (state is ErrorState) {
-                        return Center(child: Text(state.message));
-                      } else {
-                        return Center(child: Text("No data available"));
-                      }
-                    },
-                  ),
-                )
+              child: BlocProvider(
+                create: (context) => HomeCubit()..getMovies(),
+                child: BlocBuilder<HomeCubit, HomeStates>(
+                  builder: (context, state) {
+                    if (state is LoadingState) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (state is MovieState) {
+                    //  print('The data of this selected ${state.movies.length}');
+                      return GridView.builder(
+                        padding: EdgeInsets.all(8),
+                        itemCount: 200,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.8,
+                        ),
+                        itemBuilder: (context, index) {
+                          return MovieCard(movie: state.movies[index]);
+                        },
+                      );
+                    } else if (state is ErrorState) {
+                      return Center(child: Text(state.message));
+                    } else {
+                      return Center(child: Text("No movies available"));
+                    }
+                  },
+                ),
               ),
             ),
+
 
 
 
@@ -151,8 +139,8 @@ class MovieView extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => MovieDetailsScreen(
               streamId: movie.streamId, // Pass the stream_id of the movie
-              username: "1234322441154", // Pass username
-              password: "73057628438336", // Pass password
+              username: "16377097252198", // Pass username
+              password: "22718995529521", // Pass password
             ),
           ),
         );

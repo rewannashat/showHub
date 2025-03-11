@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (context) => HomeCubit()..getChannels()..fetchLiveCategories()..fetchMovieCategories()..getMovies(),
+            create: (context) => HomeCubit()..fetchMovieCategories()..getMovies()..fetchCategories()..getLives(),
           ),
         ],
       child: MaterialApp(

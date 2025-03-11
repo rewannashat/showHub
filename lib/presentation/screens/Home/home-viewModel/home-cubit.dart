@@ -16,6 +16,7 @@ import '../more-view.dart';
 import '../movie-view.dart';
 import '../series-view.dart';
 import '../tvlive-view.dart';
+import 'LiveCategory.dart';
 import 'Movie-list.dart';
 import 'MovieCategory-list.dart';
 import 'chanel-list.dart';
@@ -30,12 +31,13 @@ class HomeCubit extends Cubit <HomeStates> {
   static HomeCubit get(context) => BlocProvider.of(context);
 
 
+  // == Bottom Nav Bar LOGIC == //
   int currentIndex = 0;
 
   void changePage(int index) {
     if (currentIndex != index) {
       currentIndex = index;
-      log('Selected Index: $index');
+     // log('Selected Index: $index');
       emit(ChangeBottomNavState());
     }
   }
@@ -103,83 +105,27 @@ class HomeCubit extends Cubit <HomeStates> {
   }
 
 
-  // ==== DROPDOWN LOGIC ==== //
 
-
-  String selectedDropdownValue = 'History';
-
-
-  final List<String> dropdownItems = ['History', 'Bein Sport', 'OSN', 'Mbc'];
-
-
-  void changeDropdownValue(String newValue) {
-    selectedDropdownValue = newValue;
-    emit(ChangeSelectedListState());
-  }
-
-
-  List<MovieCategory> liveCategories = [];
-  String? selectedLiveCategory;
-
-
-  // Fetch Live TV Categories
-  Future<void> fetchLiveCategories() async {
-    emit(LoadingState());
-    try {
-      final response = await dio.get(
-        'http://tgdns4k.com:8080/player_api.php',
-        queryParameters: {
-          'username': username,
-          'password': password,
-          'action': 'get_live_categories',
-        },
-      );
-
-      if (response.statusCode == 200 && response.data is List) {
-        liveCategories = (response.data as List)
-            .map((json) => MovieCategory.fromJson(json))
-            .toList();
-        emit(LiveCategoriesLoaded(liveCategories, selectedLiveCategory));
-      } else {
-        emit(ErrorState('Failed to load live TV categories'));
-      }
-    } catch (e) {
-      emit(ErrorState('Error: $e'));
-    }
-  }
-
-
-  // Change Live TV Category Selection
-  void changeLiveCategory(String value) {
-    selectedLiveCategory = value;
-    emit(LiveCategoriesLoaded(liveCategories, selectedLiveCategory));
-  }
-
-
-  // ==== Api LOGIC ==== //
+  // ==== Api ENDPOINT ==== //
 
   final Dio dio = Dio();
-  final String username = '1234322441154';
-  final String password = '73057628438336';
+  final String username = '16377097252198';
+  final String password = '22718995529521';
 
-// ==== End ==== //
-
-
-  // ==== Channels LOGIC ==== //
-
-  List<Channel> allChannelsLive = [];
-
-  String selectedChannel = "History"; // Default category
-  List<String> channels = [
-    'History',
-    'Bein Sport',
-    'Osn',
-    'Mbc'
-  ]; // Store categories
+   // ==== End ==== //
 
 
-  Future<void> getChannels() async {
+
+  // ==== LIVE LOGIC ==== //
+
+  List<CategoryLive> categoriesLive = [];
+  String? selectedCategoryLive;
+
+
+
+  Future<void> getLives() async {
     emit(LoadingState());
+
     try {
       final response = await dio.get(
         "http://tgdns4k.com:8080/player_api.php",
@@ -190,29 +136,79 @@ class HomeCubit extends Cubit <HomeStates> {
         },
       );
 
+    // print("Response Data: ${response.data}");
+
       if (response.statusCode == 200) {
-        List<dynamic> data = response.data;
+      //  print("Response Data");
+        if (response.data is List) {
+          List<Channel> allLives = List<Channel>.from(
+              response.data.map((live) => Channel.fromJson(live)));
 
-        allChannelsLive =
-            data.map((channel) => Channel.fromJson(channel)).toList();
-
-        emit(LoadedState(allChannelsLive));
+          emit(LoadedState(allLives));
+        } else {
+          emit(ErrorState("Unexpected response format. Expected a List."));
+        }
       } else {
-        emit(ErrorState("Failed to load channels"));
+        emit(ErrorState("Failed to load live streams. Status code: ${response.statusCode}"));
       }
     } catch (e) {
-      emit(ErrorState("Error: ${e.toString()}"));
+      emit(ErrorState("Error fetching live streams: ${e.toString()}"));
     }
   }
 
 
-// ==== Movies LOGIC ==== //
+  Future<void> fetchCategories() async {
+    try {
+      final response = await dio.get(
+        'http://tgdns4k.com:8080/player_api.php',
+        queryParameters: {
+          'username': username,
+          'password': password,
+          'action': 'get_live_categories',
+        },
+      );
+
+      if (response.data is List) {
+       // log('the data ${response.data}');
+        categoriesLive = (response.data as List)
+            .map((json) => CategoryLive.fromJson(json))
+            .toList();
+      } else if (response.data is Map<String, dynamic> &&
+          response.data.containsKey('categories')) {
+        categoriesLive = (response.data['categories'] as List)
+            .map((json) => CategoryLive.fromJson(json))
+            .toList();
+      ///  log('the data ${categoriesLive.length}');
+      } else {
+        emit(ErrorState('Failed to load categories'));
+      }
+
+      emit(LiveCategoriesLoaded(categoriesLive, selectedCategoryLive));
+    } catch (e) {
+      emit(ErrorState('Error fetching categories: $e'));
+    }
+  }
+
+  void changeDropdownValue(String value) {
+    selectedCategoryLive = value;
+    getLives();
+    emit(LiveCategoriesLoaded(categoriesLive, selectedCategoryLive));
+
+  }
+
+
+
+
+
+
+
+  // ==== Movies LOGIC ==== //
 
 
   List<MovieCategory> categories = [];
   String? selectedCategory;
 
-  // Fetch movie categories using Dio
+
   Future<void> fetchMovieCategories() async {
     emit(MovieLoading());
     try {
@@ -235,7 +231,7 @@ class HomeCubit extends Cubit <HomeStates> {
           categories = (response.data['categories'] as List)
               .map((json) => MovieCategory.fromJson(json))
               .toList();
-          // log('the data ${categories.length}');
+         // log('the data ${categories.length}');
         } else {
           throw Exception('Invalid data format');
         }
@@ -248,14 +244,16 @@ class HomeCubit extends Cubit <HomeStates> {
     }
   }
 
-  // Change dropdown value and update state
+
   void changeDropdownVal(String value) {
     selectedCategory = value;
+    getMovies();
     emit(MovieLoaded(categories, selectedCategory));
   }
 
+
   Future<void> getMovies() async {
-    emit(LoadingState());
+    emit(MovieLoading());
     try {
       final response = await dio.get(
         "http://tgdns4k.com:8080/player_api.php",
@@ -268,10 +266,10 @@ class HomeCubit extends Cubit <HomeStates> {
 
       if (response.statusCode == 200) {
         List<dynamic> data = response.data;
-        log('the movie dataaaa ${data.toString()}');
+       // log('the movie dataaaa ${data.toString()}');
 
         List<Movie> allMovies = data.map((movie) => Movie.fromJson(movie)).toList();
-        log('the movie data ${data.toString()}');
+      //  log('the movie data ${data.toString()}');
 
         emit(MovieState(allMovies));
       } else {
@@ -281,6 +279,10 @@ class HomeCubit extends Cubit <HomeStates> {
       emit(ErrorState("Error: ${e.toString()}"));
     }
   }
+
+
+
+
 
 
   // == Movies Details LOGIC == //
@@ -300,6 +302,7 @@ class HomeCubit extends Cubit <HomeStates> {
       );
 
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+      //  print("Stream ID: $streamId");
         emit(MovieDetailsLoadedState(response.data));
       } else {
         emit(ErrorState("Failed to load movie details"));
@@ -308,6 +311,20 @@ class HomeCubit extends Cubit <HomeStates> {
       emit(ErrorState("Error: ${e.toString()}"));
     }
   }
+
+
+  // == Url Video Request == //
+
+  Future<void> checkMovieUrl(String url) async {
+    try {
+      final response = await Dio().get(url);
+      print("Response status: ${response.statusCode}");
+      emit(SucessState());
+    } catch (e) {
+        print("Error: $e");
+    }
+  }
+
 }
 
 

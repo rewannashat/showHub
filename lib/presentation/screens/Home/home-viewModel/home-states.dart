@@ -1,6 +1,6 @@
 
-import 'package:flutter/foundation.dart';
 
+import 'LiveCategory.dart';
 import 'Movie-list.dart';
 import 'MovieCategory-list.dart';
 import 'chanel-list.dart';
@@ -10,15 +10,17 @@ class InitialState extends HomeStates {}
 class ChangeBottomNavState extends HomeStates {}
 class ChangeSelectedListState extends HomeStates {}
 
+
 class LoadingState extends HomeStates {}
 
+ // == Live STATES == //
 class LoadedState extends HomeStates {
   final List<Channel> channels;
   LoadedState(this.channels);
 }
 
 class LiveCategoriesLoaded extends HomeStates {
-  final List<MovieCategory> liveCategories;
+  final List<CategoryLive> liveCategories;
   final String? selectedLiveCategory;
 
   LiveCategoriesLoaded(this.liveCategories, this.selectedLiveCategory);
@@ -29,7 +31,7 @@ class ErrorState extends HomeStates {
   ErrorState(this.message);
 }
 
-
+// == Movie STATES == //
 class MovieLoading extends HomeStates {}
 
 class MovieLoaded extends HomeStates {
@@ -60,6 +62,8 @@ class MovieDetailsLoadedState extends HomeStates {
   MovieDetailsLoadedState(this.movieDetails);
 }
 
+// == Video STATE == //
+class SucessState extends HomeStates{}
 
 
 
